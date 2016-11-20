@@ -1,0 +1,1 @@
+JA_proj.exe -cpp uruchomienie_dllki_w_cpp -th 0 ustawienie_optymalnej_liczby_watkow -inf test1.txt podanie_pliku_z_danymi -outf wynik_test1.txt podanie_pliku_wyjsciowego 
