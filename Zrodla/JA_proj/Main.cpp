@@ -6,7 +6,7 @@
 
 #include "../JA_Cpp_Dll/Dll.h"
 
-typedef DWORD(*Foo)();
+typedef DWORD(*Foo)(DWORD,DWORD);
 
 int main(int argc, char* argv[]) {
 	bool asmDllOn = false, cppDllOn = false; // Zmienne odpowiadajace za wybor wywoania dllki
@@ -15,14 +15,13 @@ int main(int argc, char* argv[]) {
 
 	std::thread *threadsArray = NULL;; // wskaznik tablicy w¹tków
 	int *threadsRange = NULL;;// wskaznik tablicy zakresów
-	int x = 0, y = 0, z = 0;
+	int arraySize[3];
+	int range[2];
 	
 	std::fstream file;
 	std::string sourceFile="", outFile="";
-	
-	double **tabA = NULL;
-	double **tabB = NULL;
-	double **tabC = NULL;
+	double **tab[3] = { NULL,NULL,NULL };
+
 	
 	
 
@@ -69,28 +68,28 @@ int main(int argc, char* argv[]) {
 	if (file.good()) {
 		std::cout << "Takeing A and C matrix from  file: " << sourceFile << std::endl;
 		/// POBRANIE WYMIARÓW 
-		file >> x;
-		file >> y;
-		file >> z;
+		file >> arraySize[0];
+		file >> arraySize[1];
+		file >> arraySize[2];
 		/// INICJALIZACJA TABLIC
-		tabA = new double *[x];
-		tabB = new double *[y];
-		tabC = new double *[x];
+		tab[0] = new double *[arraySize[0]];
+		tab[1] = new double *[arraySize[1]];
+		tab[2]= new double *[arraySize[2]];
 
-		for (int i = 0; i < x; i++) {
-			tabA[i] = new double[y];
-			tabC[i] = new double[z];
+		for (int i = 0; i < arraySize[0]; i++) {
+			tab[0][i] = new double[arraySize[1]];
+			tab[2][i] = new double[arraySize[2]];
 		}
 
-		for (int i = 0; i <y; i++) {
-			tabB[i] = new double[z];
+		for (int i = 0; i <arraySize[1]; i++) {
+			tab[1][i] = new double[arraySize[2]];
 		}
 		/// WCZYTYWANIE TABLICY A
 		std::cout << "\nA array:\n";
-		for (int i = 0; i < x; i++) {
-			for (int j = 0; j < y; j++) {
-				file >> tabA[i][j];
-				std::cout << tabA[i][j] << " ";
+		for (int i = 0; i < arraySize[0]; i++) {
+			for (int j = 0; j < arraySize[1]; j++) {
+				file >> tab[0][i][j];
+				std::cout << tab[0][i][j] << " ";
 			}
 			std::cout << "\n";
 		}
@@ -98,18 +97,18 @@ int main(int argc, char* argv[]) {
 
 		/// WCZYTYWANIE TABLICY B
 		std::cout << "B array:\n";
-		for (int i = 0; i < y; i++) {
-			for (int j = 0; j < z; j++) {
-				file >> tabB[i][j];
-				std::cout << tabB[i][j] << " ";
+		for (int i = 0; i < arraySize[1]; i++) {
+			for (int j = 0; j < arraySize[2]; j++) {
+				file >> tab[1][i][j];
+				std::cout << tab[1][i][j] << " ";
 			}
 			std::cout << "\n";
 		}
 		std::cout << "\n";
 
-		for (int i = 0; i < x; i++) {
-			for (int j = 0; j < z; j++) {
-				tabC[i][j] = 0;
+		for (int i = 0; i < arraySize[0]; i++) {
+			for (int j = 0; j < arraySize[2]; j++) {
+				tab[2][i][j] = 0;
 			}
 		}
 
@@ -119,11 +118,13 @@ int main(int argc, char* argv[]) {
 		std::cout << "Source file ERROR\n";
 	}
 	file.close();
+
+
 /// INICJALIZACJA ZMIENNYCH ////////////////////////////////////
 	std::cout << std::endl;
 	std::cout << "Threads count:" << threadsCount << std::endl;
-	std::cout << "First matrix is " << x << "x" << y << std::endl;
-	std::cout << "Secound matrix is " << y << "x" << z << std::endl;
+	std::cout << "First matrix is " << arraySize[0] << "x" << arraySize[1] << std::endl;
+	std::cout << "Secound matrix is " << arraySize[1] << "x" << arraySize[2] << std::endl;
 	std::cout << std::endl;
 
 	threadsArray = new std::thread[threadsCount]; //deklaracja rozmiaru tablicy w¹tków
@@ -137,7 +138,7 @@ int main(int argc, char* argv[]) {
 /// INICJALIZACJA PODZIA£U DANNYCH 
 	
 	for (int i = 0; i < threadsCount + 1; i++) {
-		threadsRange[i] = x * i/ threadsCount;
+		threadsRange[i] = arraySize[0] * i/ threadsCount;
 	}
 
 	std::cout << "threadsRange: \n";
@@ -158,7 +159,7 @@ int main(int argc, char* argv[]) {
 			myFunc = (Foo)GetProcAddress(lib, "Foo");
 			if (myFunc != NULL)
 			{
-				std::cout << (DWORD)(myFunc()) << std::endl;
+				std::cout << (DWORD)(myFunc(5,2)) << std::endl;
 			}
 			FreeLibrary(lib);
 		}
@@ -167,25 +168,19 @@ int main(int argc, char* argv[]) {
 	if (cppDllOn) {
 		for (int i = 0; i < threadsCount; i++)
 		{
-			threadsArray[i] = std::thread(MyClass::Foo, tabA, tabB, tabC, threadsRange[i], threadsRange[i + 1], x, y, z);
-		}
-		//t[i] = std::thread(call_from_thread, i, tab);
-		//MyClass::Foo( tabA[0], tabB[0], tabC[0], 0, 2, x, y, z);
-		for (int i = 0; i < threadsCount; i++)
-		{
-		//	threadsArray[i].join();
+			range[0] = threadsRange[i];
+			range[1] = threadsRange[i + 1];
+			threadsArray[i] = std::thread(MyClass::Foo, tab, threadsRange, arraySize);
 		}
 
-		
-			
 		for (int i = 0; i < threadsCount; i++) {
 			threadsArray[i].join();
 		}
 		
 		std::cout << "C matrix is ready\n";
-		for (int i = 0; i < x; i++) {
-			for (int j = 0; j < z; j++) {
-				std::cout << tabC[i][j] << " ";
+		for (int i = 0; i < arraySize[0]; i++) {
+			for (int j = 0; j < arraySize[2]; j++) {
+				std::cout << tab[2][i][j] << " ";
 			}
 			std::cout << "\n";
 		}
@@ -195,10 +190,10 @@ int main(int argc, char* argv[]) {
 	file.open(outFile, std::ios::out);
 	if (file.good()) {
 		std::cout << "Saving C matrix to file: " << outFile << std::endl;
-		file << "C matrix " << x << "x" << z << std::endl;
-		for (int i = 0; i < x; i++) {
-			for (int j = 0; j < z; j++) {
-				file << tabC[i][j] << " ";
+		file << "C matrix " << arraySize[0] << "x" << arraySize[2] << std::endl;
+		for (int i = 0; i < arraySize[0] ; i++) {
+			for (int j = 0; j < arraySize[2] ; j++) {
+				file << tab[2][i][j] << " ";
 			}
 			file << "\n";
 		}
@@ -215,22 +210,22 @@ int main(int argc, char* argv[]) {
 	//threadsArray = NULL;
 	delete(threadsRange);
 	threadsRange = NULL;
-	for (int i = 0; i < x; i++) {
-		delete(tabA[i]);
-		tabA[i] = NULL;
-		delete(tabC[i]);
-		tabC[i] = NULL;
+	for (int i = 0; i < arraySize[0] ; i++) {
+		delete(tab[0][i]);
+		tab[0][i] = NULL;
+		delete(tab[2][i]);
+		tab[2][i] = NULL;
 	}
-	delete(tabA);
-	tabA = NULL;
-	delete(tabC);
-	tabC = NULL;
-	for (int i = 0; i < y; i++) {
-		delete(tabB[i]);
-		tabB[i] = NULL;
+	delete(tab[0]);
+	tab[0] = NULL;
+	delete(tab[2]);
+	tab[2] = NULL;
+	for (int i = 0; i < arraySize[1] ; i++) {
+		delete(tab[1][i]);
+		tab[1][i] = NULL;
 	}
-	delete(tabB);
-	tabB = NULL;
+	delete(tab[1]);
+	tab[1] = NULL;
 
 	system("pause");
 	return 0;

@@ -1,9 +1,11 @@
+.data
+zmienna DWORD ?
 .code
 
 Foo PROC
-
-	mov rax, 51
-	add rax, rax
+	
+	mov zmienna, 8
+	mov rax, zmienna
 	ret
 
 Foo endp

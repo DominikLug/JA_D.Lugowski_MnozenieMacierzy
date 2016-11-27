@@ -1,18 +1,18 @@
 #include "Dll.h"
 #include <iostream>
 
-void MyClass::Foo(double **tabA, double **tabB, double **tabC, int startX, int stopX, int maxX, int maxY, int maxZ)
+void MyClass::Foo(double ***tab , int range[2], int max[3])
 {
 	double *tempA, *tempB, *tempC;
-	for (int i = startX; i < stopX; i++)
+	for (int i = range[0]; i < range[1]; i++)
 	{
-		tempA = tabA[i];
-		tempC = tabC[i];
-		for (int j = 0; j < maxZ; j++)
+		tempA = tab[0][i];
+		tempC = tab[2][i];
+		for (int j = 0; j < max[2]; j++)
 		{
-			for (int k = 0; k < maxY; k++) 
+			for (int k = 0; k < max[1]; k++) 
 			{
-				tempB = tabB[k];
+				tempB = tab[1][k];
 				tempC[j] += tempA[k] * tempB[j];
 			}
 		}
