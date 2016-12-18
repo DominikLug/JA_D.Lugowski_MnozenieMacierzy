@@ -1,0 +1,1 @@
+JA_proj.exe -cpp   -inf macierze.txt -outf out.txt   -th 4 
