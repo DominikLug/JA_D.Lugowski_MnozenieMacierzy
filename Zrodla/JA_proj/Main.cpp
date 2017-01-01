@@ -6,7 +6,7 @@
 
 #include "../JA_Cpp_Dll/Dll.h"
 
-typedef DWORD(*Foo)(DWORD,DWORD);
+typedef int(*Foo)(double ***tab,int range[2], int max[3]);
 
 int main(int argc, char* argv[]) {
 	bool asmDllOn = false, cppDllOn = false; // Zmienne odpowiadajace za wybor wywoania dllki
@@ -22,8 +22,6 @@ int main(int argc, char* argv[]) {
 	std::string sourceFile="", outFile="";
 	double **tab[3] = { NULL,NULL,NULL };
 
-	
-	
 
 /// OBS£UGA ARGUMENTOW /////////////////////////
 	for (int i = 0; i < argc; i++) {
@@ -130,13 +128,7 @@ int main(int argc, char* argv[]) {
 	threadsArray = new std::thread[threadsCount]; //deklaracja rozmiaru tablicy w¹tków
 	threadsRange = new int[threadsCount + 1]; //deklaracja rozmiaru tablicy zakresu watków
 	
-
-	
-
-
-
 /// INICJALIZACJA PODZIA£U DANNYCH 
-	
 	for (int i = 0; i < threadsCount + 1; i++) {
 		threadsRange[i] = arraySize[0] * i/ threadsCount;
 	}
@@ -148,7 +140,8 @@ int main(int argc, char* argv[]) {
 	}
 	std::cout << "\n";
 	//std::system("pause");
-	
+	clock_t start = clock();
+
 /// DLLka asemblerowa /////////////////////////
 	if (asmDllOn) {
 		Foo myFunc;
@@ -159,7 +152,14 @@ int main(int argc, char* argv[]) {
 			myFunc = (Foo)GetProcAddress(lib, "Foo");
 			if (myFunc != NULL)
 			{
-				std::cout << (DWORD)(myFunc(5,2)) << std::endl;
+				for (int i = 0; i < threadsCount; i++)
+				{
+					threadsArray[i] = std::thread(myFunc, tab, &threadsRange[i], arraySize);
+				}
+
+				for (int i = 0; i < threadsCount; i++) {
+					threadsArray[i].join();
+				}
 			}
 			FreeLibrary(lib);
 		}
@@ -170,20 +170,14 @@ int main(int argc, char* argv[]) {
 		{
 			range[0] = threadsRange[i];
 			range[1] = threadsRange[i + 1];
-			threadsArray[i] = std::thread(MyClass::Foo, tab, threadsRange, arraySize);
+			threadsArray[i] = std::thread(MyClass::Foo, tab, range, arraySize);
 		}
 
 		for (int i = 0; i < threadsCount; i++) {
 			threadsArray[i].join();
 		}
 		
-		std::cout << "C matrix is ready\n";
-		for (int i = 0; i < arraySize[0]; i++) {
-			for (int j = 0; j < arraySize[2]; j++) {
-				std::cout << tab[2][i][j] << " ";
-			}
-			std::cout << "\n";
-		}
+		
 	}
 
 /// ZAPISYWANIE DO PLIKU /////////////////////////////
@@ -202,12 +196,19 @@ int main(int argc, char* argv[]) {
 		std::cout << "Out File ERROR\n";
 	}
 	file.close();
-/// ZWALNIANIE PAMIECI ///////////////////////////////
-	for (int i = 0; i < threadsCount; i++) {
-		
+
+	std::cout << "C matrix is ready\n";
+	for (int i = 0; i < arraySize[0]; i++) {
+		for (int j = 0; j < arraySize[2]; j++) {
+			std::cout << tab[2][i][j] << " ";
+		}
+		std::cout << "\n";
 	}
-	//delete(threadsArray);
-	//threadsArray = NULL;
+
+	printf("Czas wykonywania: %lu ms\n", clock() - start);
+/// ZWALNIANIE PAMIECI ///////////////////////////////
+	delete[] threadsArray;
+	threadsArray = NULL;
 	delete(threadsRange);
 	threadsRange = NULL;
 	for (int i = 0; i < arraySize[0] ; i++) {
