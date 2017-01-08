@@ -70,6 +70,7 @@ int main(int argc, char* argv[]) {
 		file >> arraySize[1];
 		file >> arraySize[2];
 		/// INICJALIZACJA TABLIC
+		/*STARA INICJALIZACJA
 		tab[0] = new double *[arraySize[0]];
 		tab[1] = new double *[arraySize[1]];
 		tab[2]= new double *[arraySize[2]];
@@ -81,7 +82,24 @@ int main(int argc, char* argv[]) {
 
 		for (int i = 0; i <arraySize[1]; i++) {
 			tab[1][i] = new double[arraySize[2]];
+		}*/
+		///INICJALIZACJA TABLIC TRANSPONOWANYCH
+		tab[0] = new double *[arraySize[0]];
+		tab[1] = new double *[arraySize[2]];
+		tab[2] = new double *[arraySize[0]];
+		for (int i = 0; i < arraySize[0]; i++) {
+			tab[0][i] = new double[arraySize[1]+1];
+			tab[2][i] = new double[arraySize[2]];
 		}
+		for (int i = 0; i < arraySize[2]; i++) {
+			tab[1][i] = new double[arraySize[1]+1];
+
+		}
+		//inicjalizowanie wartownikow
+		for (int i = 0; i < arraySize[0]; i++) {
+			tab[0][i][arraySize[1]]=0;
+		}
+
 		/// WCZYTYWANIE TABLICY A
 		std::cout << "\nA array:\n";
 		for (int i = 0; i < arraySize[0]; i++) {
@@ -93,12 +111,12 @@ int main(int argc, char* argv[]) {
 		}
 		std::cout << "\n";
 
-		/// WCZYTYWANIE TABLICY B
+		/// WCZYTYWANIE TABLICY B 
 		std::cout << "B array:\n";
 		for (int i = 0; i < arraySize[1]; i++) {
 			for (int j = 0; j < arraySize[2]; j++) {
-				file >> tab[1][i][j];
-				std::cout << tab[1][i][j] << " ";
+				file >> tab[1][j][i];	/// i zamieniono na j
+				std::cout << tab[1][j][i] << " ";
 			}
 			std::cout << "\n";
 		}
@@ -221,7 +239,7 @@ int main(int argc, char* argv[]) {
 	tab[0] = NULL;
 	delete(tab[2]);
 	tab[2] = NULL;
-	for (int i = 0; i < arraySize[1] ; i++) {
+	for (int i = 0; i < arraySize[2] ; i++) {
 		delete(tab[1][i]);
 		tab[1][i] = NULL;
 	}

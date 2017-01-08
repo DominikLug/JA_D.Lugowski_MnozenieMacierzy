@@ -14,12 +14,12 @@ sizeZ dq ?
 
 range0 dq ?
 range1 dq ?
+
+NotEven dq 1
+NotEvenPass dq 0
 .code
 
 Foo PROC
-	;rcx-tab
-	;rbx-range
-	;r8 - size
 	emms
 	movsxd r9,dword ptr [rdx]
 	xor rax,rax
@@ -52,8 +52,9 @@ Foo PROC
 	mov rax,qword ptr[rax]
 	mov rowC,rax
 
-	mov r9,0
-loop_r:
+	mov r9,range0
+
+	loop_r:
 		cmp r9,range1
 		jge loop_re
 
@@ -68,48 +69,49 @@ loop_r:
 		add rax,tabC
 		mov rax,qword ptr[rax]
 		mov rowC, rax
-		
-		mov r10,0 
-	loop_j:
+
+		mov r10,0
+		loop_j:
 			cmp r10,sizeZ
 			jge loop_je
 
 			mov rax,r10
-				imul rax,8
-				add rax,rowC
-				mov elmCptr, rax
-				
+			imul rax,8
+			add rax,rowC
+			mov elmCptr, rax
+			
+			mov rax,r10
+			imul rax,8
+			add rax,tabB
+			mov rax,qword ptr[rax]
+			mov rowB, rax
 
 			mov r11,0			
 			loop_k:
 				cmp r11,sizeY
 				jge loop_ke
 
-				mov rax,r11
-				imul rax,8
-				add rax,tabB
-				mov rax,qword ptr[rax]
-				mov rowB, rax
-
-				mov rax,r10
+			 	mov rax,r11
 				imul rax,8
 				add rax,rowB
-				movsd xmm2,qword ptr[rax]
-			
+				movaps xmm2,oword ptr[rax] ; tu zmiana od B
 				
 				mov rax,r11
 				imul rax,8
 				add rax,rowA
-				movsd xmm1,qword ptr[rax]
-				
+				movaps xmm1,oword ptr[rax] 
 
 				mov rax,elmCptr
 				movsd xmm3,qword ptr[rax]
 				mulpd xmm1,xmm2
-				addpd xmm1,xmm3
-				movq qword ptr[rax],xmm1
+				haddpd xmm1,xmm1
+				addpd xmm3,xmm1
 
-				add r11,1
+				movq qword ptr[rax],xmm3
+				
+
+				add r11,2
+
 				jmp loop_k
 			loop_ke:
 
@@ -120,19 +122,10 @@ loop_r:
 		add r9,1
 		jmp loop_r
 loop_re:	
+mov rax,1
+ret
 
 
-	
-	
-	
-	ret
-
-Foo endp
+	Foo endp
 end
 
-mm0-7 inty
-xmm0-15 wszystko
-movd wpisuje 32b
-movq 64
-
-movsd xmm0, qword ptr [rax+r12]

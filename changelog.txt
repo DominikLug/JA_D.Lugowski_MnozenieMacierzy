@@ -3,3 +3,4 @@
 25.11.2016 V0.0 Poprawiona dll-ka w jêzyku C++, zmniejszenie iloœci przyjmowanych parametrów, wczesniej 3 wskazniki na tablice dwuwymiarowe, dwie liczby okreœlaj¹ce zakres obliczeñ oraz 3 liczby okreœlaj¹ce wielkoœci tablic, teraz tablica zawierajaca dwie macierze wejsciowe i macierz wyjsciow¹, tablica zakresu obliczen oraz tablica rozmiarow macierzy. Zmiana wyuszona przez pomys³ na przysz³¹ implementacjê dll-ki asemblerowej (wymóg przyjmowania tych samych zmiennych)
 9.12.2015 V0.0 Dodanie dzia³aj¹cej dllki w asemblerze, testowane dla jednego w¹tku 
 18.12.2016 V0.1 Dllka w asm dzia³a na wielu w¹tkach. Poprawki wycieków pamieci . Dodanie zliczania czasu 
+7.01.2017 V0.5 Ca³kowita zmiana algorytmu dzia³ania obydwuch dll-ek, wprowadzenie w pe³ni dzia³aj¹cych operacji wektorowych. Wymaga dalszej optymalizacji.
